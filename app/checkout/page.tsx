@@ -2,126 +2,142 @@
 
 import { useCartStore } from "@/app/store/cartStore";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function CheckoutPage() {
   const { cart, clearCart } = useCartStore();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  // Total calculation
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const totalPrice = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
-  const handlePlaceOrder = async (e: React.FormEvent) => {
+  const handlePlaceOrder = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
 
-    // Yahan hum sirf aik fake delay add kar rahe hain taake professional feel aaye
-    setTimeout(() => {
-      alert("Mubarak Ho! Aapka Order receive ho gaya hai. Hum jald hi aap se rabta karenge.");
-      clearCart();
-      router.push("/"); // Order ke baad home page par wapis
-    }, 2000);
+    const formData = new FormData(e.currentTarget);
+    
+    // Order Object for Sanity
+    const orderData = {
+      _type: "order",
+      fullName: `${formData.get("firstName")} ${formData.get("lastName")}`,
+      email: formData.get("email"),
+      phone: formData.get("phone"),
+      address: formData.get("address"),
+      items: cart.map((item) => ({
+        _key: Math.random().toString(36).substring(2, 9), 
+        productName: item.name,
+        quantity: item.quantity,
+        price: item.price,
+      })),
+      totalAmount: totalPrice,
+      status: "pending",
+      orderDate: new Date().toISOString(),
+    };
+
+    try {
+      const projectId = "ll9lalgh";
+      const dataset = "production"
+      const token = "skwRCqallSS4aiKXrmqSiBVYC5tEs2ItvBa8mgYvvsRLkEp1ywQL1QFiYTCN1NyFJo5sWxN9WwTWhi5qv6OaYIWrDA4twye2fxNc3gRyptwPqCeqyPLd1k3kpEN83ZPOgO1sL0h22n8kpnoitFKMwiizbtNgDGf1RzoXT8xRbfnYALRX8HUm"
+
+      const response = await fetch(
+        `https://${projectId}.api.sanity.io/v2021-06-07/data/mutate/${dataset}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ mutations: [{ create: orderData }] }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert("Shukriya! Aapka Order Admin Panel (Sanity) mein save ho gaya hai.");
+        clearCart();
+        router.push("/");
+      } else {
+        console.error("Sanity Error Details:", result);
+        throw new Error(result.error?.message || "Failed to save order");
+      }
+    } catch (error) {
+      console.error("Order Error:", error);
+      alert("Order save nahi ho saka. Console check karein (F12) aur Token/CORS verify karein.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Agar cart khali hai toh redirect kar dein ya message dikhayein
-  if (cart.length === 0) {
+  if (!mounted || cart.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        <h2 className="text-2xl font-bold mb-4">Aapka cart khali hai!</h2>
-        <Link href="/" className="bg-blue-600 text-white px-6 py-2 rounded-lg">Wapis Shopping Karein</Link>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+        <p className="text-xl font-medium text-gray-500">Aapka cart khali hai...</p>
+        <button onClick={() => router.push("/")} className="bg-blue-600 text-white px-6 py-2 rounded-lg">Wapis Shopping Karein</button>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-12 md:py-20">
-      <div className="flex flex-col lg:flex-row gap-12">
-        
-        {/* Left Side: Shipping Form */}
-        <div className="flex-1 space-y-8">
-          <div>
-            <h1 className="text-3xl font-serif font-bold text-gray-900">Checkout</h1>
-            <p className="text-gray-500 mt-2">Shipping Information (Cash on Delivery)</p>
-          </div>
-
+    <div className="max-w-7xl mx-auto px-6 py-12">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        {/* Shipping Form */}
+        <div className="space-y-6">
+          <h2 className="text-3xl font-bold font-serif">Shipping Details</h2>
           <form onSubmit={handlePlaceOrder} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input 
-                type="text" placeholder="First Name" required 
-                className="w-full p-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition"
-              />
-              <input 
-                type="text" placeholder="Last Name" required 
-                className="w-full p-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <input name="firstName" placeholder="First Name" required className="p-4 border rounded-xl w-full focus:ring-2 focus:ring-blue-500 outline-none" />
+              <input name="lastName" placeholder="Last Name" required className="p-4 border rounded-xl w-full focus:ring-2 focus:ring-blue-500 outline-none" />
             </div>
-            <input 
-              type="email" placeholder="Email Address" required 
-              className="w-full p-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition"
-            />
-            <input 
-              type="text" placeholder="Phone Number (e.g. 03001234567)" required 
-              className="w-full p-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition"
-            />
-            <textarea 
-              placeholder="Shipping Address" required 
-              className="w-full p-4 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition h-32"
-            ></textarea>
-
-            <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100 flex items-center gap-3">
-              <input type="radio" checked readOnly className="h-5 w-5 accent-blue-600" />
-              <span className="text-blue-900 font-medium">Cash on Delivery (Pay when you receive)</span>
+            <input name="email" type="email" placeholder="Email" required className="p-4 border rounded-xl w-full focus:ring-2 focus:ring-blue-500 outline-none" />
+            <input name="phone" placeholder="Phone Number" required className="p-4 border rounded-xl w-full focus:ring-2 focus:ring-blue-500 outline-none" />
+            <textarea name="address" placeholder="Full Address" required className="p-4 border rounded-xl w-full h-32 focus:ring-2 focus:ring-blue-500 outline-none" />
+            
+            <div className="p-4 bg-green-50 border border-green-100 rounded-xl flex items-center gap-3">
+              <div className="h-4 w-4 bg-green-500 rounded-full"></div>
+              <p className="text-green-800 font-medium">Payment: Cash on Delivery</p>
             </div>
 
             <button 
               disabled={loading}
-              type="submit" 
-              className={`w-full py-4 rounded-2xl font-bold text-lg transition-all shadow-lg ${
-                loading ? "bg-gray-400" : "bg-blue-600 hover:bg-black text-white active:scale-95"
-              }`}
+              className={`w-full py-4 rounded-xl font-bold text-white transition-all shadow-lg ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-black active:scale-95"}`}
             >
-              {loading ? "Processing..." : "Confirm Order"}
+              {loading ? "Order Processing..." : "Place Order"}
             </button>
           </form>
         </div>
 
-        {/* Right Side: Order Summary */}
-        <div className="w-full lg:w-100 bg-gray-50 p-8 rounded-3xl h-fit border border-gray-100">
+        {/* Summary */}
+        <div className="bg-gray-50 p-8 rounded-3xl h-fit border border-gray-100 sticky top-24">
           <h2 className="text-xl font-bold mb-6">Order Summary</h2>
-          <div className="space-y-4 mb-6">
+          <div className="space-y-4 border-b pb-6 max-h-100 overflow-y-auto">
             {cart.map((item) => (
-              <div key={item.slug} className="flex justify-between items-center gap-4">
+              <div key={item.slug} className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
-                  <div className="relative h-12 w-12 bg-white rounded-lg p-1 border">
+                  <div className="relative h-14 w-14 bg-white rounded-lg border p-1">
                     <Image src={item.imageUrl} alt={item.name} fill className="object-contain" />
                   </div>
-                  <span className="text-sm font-medium text-gray-700 truncate w-32">{item.name}</span>
+                  <div>
+                    <p className="text-sm font-bold text-gray-800 truncate w-40">{item.name}</p>
+                    <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
+                  </div>
                 </div>
-                <span className="text-sm font-bold">x{item.quantity}</span>
-                <span className="text-sm font-bold text-gray-900">Rs. {item.price * item.quantity}</span>
+                <p className="font-bold text-sm">Rs. {(item.price * item.quantity).toLocaleString()}</p>
               </div>
             ))}
           </div>
-
-          <div className="border-t border-gray-200 pt-6 space-y-2">
-            <div className="flex justify-between text-gray-500">
-              <span>Subtotal</span>
-              <span>Rs. {totalPrice.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between text-gray-500">
-              <span>Delivery</span>
-              <span className="text-green-600 font-bold">FREE</span>
-            </div>
-            <div className="flex justify-between text-xl font-black text-gray-900 pt-4">
-              <span>Total</span>
-              <span>Rs. {totalPrice.toLocaleString()}</span>
-            </div>
+          <div className="flex justify-between pt-6 text-2xl font-black text-gray-900">
+            <span>Total</span>
+            <span className="text-blue-700">Rs. {totalPrice.toLocaleString()}</span>
           </div>
         </div>
-
       </div>
     </div>
   );

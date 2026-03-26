@@ -61,7 +61,7 @@ export default function CheckoutPage() {
       const result = await response.json();
 
       if (response.ok) {
-        alert("Shukriya! Aapka Order Admin Panel (Sanity) mein save ho gaya hai.");
+        alert("Thanx your order is saved.");
         clearCart();
         router.push("/");
       } else {
@@ -70,7 +70,7 @@ export default function CheckoutPage() {
       }
     } catch (error) {
       console.error("Order Error:", error);
-      alert("Order save nahi ho saka. Console check karein (F12) aur Token/CORS verify karein.");
+      alert("Order is not saved. check Console  (F12) aur verify Token/CORS settings.");
     } finally {
       setLoading(false);
     }
@@ -79,8 +79,8 @@ export default function CheckoutPage() {
   if (!mounted || cart.length === 0) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-        <p className="text-xl font-medium text-gray-500">Aapka cart khali hai...</p>
-        <button onClick={() => router.push("/")} className="bg-blue-600 text-white px-6 py-2 rounded-lg">Wapis Shopping Karein</button>
+        <p className="text-xl font-medium text-gray-500">Empty Cart...</p>
+        <button onClick={() => router.push("/")} className="bg-blue-600 text-white px-6 py-2 rounded-lg">Continue Shopping...</button>
       </div>
     );
   }

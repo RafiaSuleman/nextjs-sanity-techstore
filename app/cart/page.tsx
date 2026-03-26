@@ -18,16 +18,16 @@ export default function CartPage() {
       <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-6">
         <div className="text-6xl">🛒</div>
         <h1 className="text-3xl font-serif font-bold text-gray-800">
-          Aapka cart khali hai
+          Empty cart
         </h1>
         <p className="text-gray-500">
-          Lagta hai aapne abhi tak kuch pasand nahi kiya.
+          It seems you have not found what you are looking for yet.
         </p>
         <Link
           href="/"
           className="bg-blue-600 text-white px-8 py-3 rounded-full font-bold hover:bg-black transition"
         >
-          Shopping Shuru Karein
+         Continue Shopping...
         </Link>
       </div>
     );

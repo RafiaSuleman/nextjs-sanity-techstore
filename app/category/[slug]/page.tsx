@@ -27,8 +27,8 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   if (!products || products.length === 0) {
     return (
       <div className="p-20 text-center min-h-[60vh] flex flex-col justify-center">
-        <h1 className="text-2xl italic text-gray-400">`{slug} `mein koi product nahi mili</h1>
-        <p className="mt-2 text-blue-500">Sanity Studio mein category check karein.</p>
+        <h1 className="text-2xl italic text-gray-400">`{slug} `no product found</h1>
+        <p className="mt-2 text-blue-500"> check category in Sanity Studio.</p>
       </div>
     );
   }

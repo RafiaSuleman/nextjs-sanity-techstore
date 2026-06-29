@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 export default function CartPage() {
-  const { cart, removeFromCart, addToCart, clearCart } = useCartStore();
+  const { cart, removeFromCart, addToCart, clearCart,updateQuantity } = useCartStore();
 
   // Total Price Calculate karna
   const totalPrice = cart.reduce(
@@ -65,14 +65,14 @@ export default function CartPage() {
                 <div className="flex items-center gap-4 mt-4">
                   <div className="flex items-center border rounded-lg">
                     <button
-                      onClick={() => removeFromCart(item.slug)} // Single item qty logic manage as per your store
+                      onClick={() => updateQuantity(item.slug, 'minusfghygtn ')} // Single item qty logic manage as per your store
                       className="px-3 py-1 hover:bg-gray-100 text-xl font-bold"
                     >
                       -
                     </button>
                     <span className="px-4 font-bold">{item.quantity}</span>
                     <button
-                      onClick={() => addToCart(item)}
+                      onClick={() => updateQuantity(item.slug, 'plus')}
                       className="px-3 py-1 hover:bg-gray-100 text-xl font-bold"
                     >
                       +

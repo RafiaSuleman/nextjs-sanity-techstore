@@ -38,15 +38,20 @@ export const useCartStore = create<CartState>()(
         cart: state.cart.filter((item) => item.slug !== slug),
       })),
 
-      updateQuantity: (slug, type) => set((state) => ({
-        cart: state.cart.map((item) => {
-          if (item.slug === slug) {
-            const newQty = type === 'plus' ? item.quantity + 1 : item.quantity - 1;
-            return { ...item, quantity: Math.max(1, newQty) };
-          }
-          return item;
-        })
-      })),
+      updateQuantity: (slug, type) =>
+        set((state) => ({
+          cart: state.cart
+            .map((item) => {
+              if (item.slug === slug) {
+                const newQty =
+                  type === "plus" ? item.quantity + 1 : item.quantity - 1;
+
+                return { ...item, quantity: newQty };
+              }
+              return item;
+            })
+            .filter((item) => item.quantity > 0), // ✅ remove only when 0
+        })),
 
       clearCart: () => set({ cart: [] }),
     }),
